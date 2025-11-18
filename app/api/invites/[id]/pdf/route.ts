@@ -72,7 +72,7 @@ export async function GET(
     ? `Nom : ${fullName}`
     : "Nom : ………………………………";
   const status = (invite.status || "En attente").toUpperCase();
-  const reference = invite.referenceCode || "INV-XXXXXX";
+  const reference = invite.referenceCode || "INV-ID";
   const contactLine =
     [
       invite.email ? `Email : ${invite.email}` : undefined,
@@ -83,11 +83,12 @@ export async function GET(
   const eventTitle = invite.eventTitle || "Lancement Officiel BotGround";
   const eventDate = invite.eventDate || "Samedi 22 Novembre 2025";
   const eventTime =
-    invite.eventTime || "Accueil à partir de 09h00 • Événement : 09h00 – 11h00";
+    invite.eventTime || "Accueil à partir de 10h30 • Événement : 11h00 – 13h00";
   const eventVenueHero = invite.eventVenue || "Salle de Conférence (100 places)";
   const eventVenueDetail =
-    invite.eventVenueDetail || invite.eventVenue || "Salle de Conférence – (nom exact du lieu)";
-  const dressCode = invite.dressCode || "Tenue recommandée : Smart Casual";
+    invite.eventVenueDetail ||
+    invite.eventVenue ||
+    "Salle de Conférence – Technopark Casablanca";
   const extraNote =
     invite.note || "Présentez ce pass numérique accompagné d’une pièce d’identité.";
 
@@ -190,7 +191,6 @@ export async function GET(
   drawLabelValue("Coordonnées", contactLine, cardX + 24, colY, cardWidth - 48);
 
   colY -= 70;
-  drawLabelValue("Dress code", dressCode, cardX + 24, colY, cardWidth - 48);
 
   page.drawRectangle({
     x: cardX + 24,
