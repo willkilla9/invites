@@ -2,14 +2,30 @@
 "use client";
 
 import Papa from "papaparse";
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-export default function CsvImport() {
+type EventOption = { id: string; name: string };
+
+export default function CsvImport({ events }: { events: EventOption[] }) {
   const [message, setMessage] = useState("");
+  const [eventId, setEventId] = useState(events[0]?.id ?? "");
+
+  const eventOptions = useMemo(() => events.map((evt) => ({ value: evt.id, label: evt.name })), [events]);
+
+  useEffect(() => {
+    if (!eventId && events.length > 0) {
+      setEventId(events[0].id);
+    }
+  }, [events, eventId]);
 
   const handleFile = (e: any) => {
     const file = e.target.files?.[0];
     if (!file) return;
+
+    if (!eventId) {
+      setMessage("Merci de sélectionner un évènement avant l'import.");
+      return;
+    }
 
     Papa.parse(file, {
       header: true,
@@ -19,7 +35,7 @@ export default function CsvImport() {
         const res = await fetch("/api/invites/import", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ rows }),
+          body: JSON.stringify({ rows, eventId }),
         });
 
         const json = await res.json();
@@ -45,12 +61,34 @@ export default function CsvImport() {
           </p>
         </div>
 
+        {events.length > 0 ? (
+          <div>
+            <label className="block text-sm font-medium text-slate-300">Évènement cible</label>
+            <select
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+              value={eventId}
+              onChange={(e) => setEventId(e.target.value)}
+            >
+              {eventOptions.map((option) => (
+                <option key={option.value} value={option.value} className="text-slate-900">
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <p className="rounded-xl border border-amber-400/30 bg-amber-500/10 px-4 py-2 text-sm text-amber-100">
+            Créez d&apos;abord un évènement pour activer l&apos;import CSV.
+          </p>
+        )}
+
         <label className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-indigo-400/60 bg-indigo-400/5 px-6 py-10 text-center text-sm text-slate-300 transition hover:border-indigo-300 hover:bg-indigo-400/10">
           <input
             type="file"
             accept=".csv"
             onChange={handleFile}
             className="hidden"
+            disabled={!events.length}
           />
           <span className="text-base font-semibold text-white">Sélectionner un fichier CSV</span>
           <span className="mt-1 text-xs text-slate-400">Jusqu&apos;à 5 000 lignes supportées</span>

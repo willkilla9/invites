@@ -1,21 +1,41 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-export default function InviteForm() {
+type EventOption = {
+  id: string;
+  name: string;
+};
+
+export default function InviteForm({ events }: { events: EventOption[] }) {
   const [nom, setNom] = useState("");
   const [prenom, setPrenom] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [eventId, setEventId] = useState(events[0]?.id ?? "");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!eventId && events.length > 0) {
+      setEventId(events[0].id);
+    }
+  }, [events, eventId]);
+
+  const eventOptions = useMemo(() => events.map((evt) => ({ value: evt.id, label: evt.name })), [events]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setMessage(null);
     setError(null);
+
+    if (!eventId) {
+      setError("Merci de créer un évènement avant d'ajouter des invitations");
+      setLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/invites", {
@@ -26,6 +46,7 @@ export default function InviteForm() {
           prenom,
           phone: phone || null,
           email: email || null,
+          eventId,
         }),
       });
 
@@ -40,6 +61,7 @@ export default function InviteForm() {
         setPrenom("");
         setPhone("");
         setEmail("");
+        setEventId(events[0]?.id ?? "");
       }
     } catch (err) {
       console.error(err);
@@ -48,6 +70,22 @@ export default function InviteForm() {
       setLoading(false);
     }
   };
+
+  if (!events.length) {
+    return (
+      <div className="relative overflow-hidden rounded-3xl border border-amber-400/30 bg-amber-500/10 p-6 text-slate-100 shadow-2xl">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(251,191,36,0.2),_transparent_55%)]" />
+        <div className="relative space-y-3">
+          <p className="text-xs uppercase tracking-[0.4em] text-amber-200">Évènement requis</p>
+          <h2 className="text-2xl font-semibold text-white">Créez un évènement pour démarrer</h2>
+          <p className="text-sm text-amber-100/90">
+            Aucun évènement n&apos;est défini. Ajoutez un évènement dans le panneau dédié afin de pouvoir créer des invitations ou
+            importer un fichier CSV.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form
@@ -76,6 +114,23 @@ export default function InviteForm() {
         )}
 
         <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="block text-sm font-medium text-slate-300">
+              Évènement <span className="text-rose-400">*</span>
+            </label>
+            <select
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white focus:border-indigo-400 focus:outline-none"
+              value={eventId}
+              onChange={(e) => setEventId(e.target.value)}
+            >
+              {eventOptions.map((option) => (
+                <option key={option.value} value={option.value} className="text-slate-900">
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div>
             <label className="block text-sm font-medium text-slate-300">
               Nom <span className="text-rose-400">*</span>

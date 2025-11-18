@@ -20,6 +20,15 @@ export async function GET(
 
   const invite = snap.data();
 
+  let eventData: Record<string, any> | null = null;
+  if (invite.eventId) {
+    const eventRef = doc(db, "events", invite.eventId);
+    const eventSnap = await getDoc(eventRef);
+    if (eventSnap.exists()) {
+      eventData = eventSnap.data();
+    }
+  }
+
   // Generate QR
   const qrDataUrl = await QRCode.toDataURL(id);
   const qrImageBytes = Uint8Array.from(
@@ -80,15 +89,15 @@ export async function GET(
     ]
       .filter(Boolean)
       .join("   •   ") || "Email : ……………………………… • Téléphone : ……………………";
-  const eventTitle = invite.eventTitle || "Lancement Officiel BotGround";
-  const eventDate = invite.eventDate || "Samedi 22 Novembre 2025";
+  const eventTitle = eventData?.name || invite.eventName || invite.eventTitle || "Évènement à confirmer";
+  const eventDate = eventData?.date || invite.eventDate || "Date à confirmer";
   const eventTime =
-    invite.eventTime || "Accueil à partir de 10h30 • Événement : 11h00 – 13h00";
-  const eventVenueHero = invite.eventVenue || "Salle de Conférence (100 places)";
+    eventData?.time || invite.eventTime || "Accueil et programme précisés ultérieurement";
+  const eventVenueHero =
+    eventData?.place || invite.eventPlace || invite.eventVenue || "Lieu à confirmer";
   const eventVenueDetail =
-    invite.eventVenueDetail ||
-    invite.eventVenue ||
-    "Salle de Conférence – Technopark Casablanca";
+    eventData?.place || invite.eventPlace || invite.eventVenueDetail || invite.eventVenue || "Lieu communiqué ultérieurement";
+  const eventLogoUrl = eventData?.logoUrl || invite.eventLogo || null;
   const extraNote =
     invite.note || "Présentez ce pass numérique accompagné d’une pièce d’identité.";
 
@@ -125,6 +134,24 @@ export async function GET(
     color: accent,
   });
 
+  let logoImage = null;
+  if (eventLogoUrl) {
+    try {
+      const response = await fetch(eventLogoUrl);
+      if (response.ok) {
+        const arrayBuffer = await response.arrayBuffer();
+        const contentType = response.headers.get("content-type") || "";
+        if (contentType.includes("png") || eventLogoUrl.toLowerCase().endsWith(".png")) {
+          logoImage = await pdfDoc.embedPng(arrayBuffer);
+        } else {
+          logoImage = await pdfDoc.embedJpg(arrayBuffer);
+        }
+      }
+    } catch (error) {
+      console.error("Impossible de charger le logo de l'évènement", error);
+    }
+  }
+
   page.drawText("PASS D'INVITATION", {
     x: cardX + 24,
     y: heroY + heroHeight - 32,
@@ -146,6 +173,18 @@ export async function GET(
     font,
     color: muted,
   });
+
+  if (logoImage) {
+    const desiredWidth = 96;
+    const scale = desiredWidth / logoImage.width;
+    const logoHeight = logoImage.height * scale;
+    page.drawImage(logoImage, {
+      x: cardX + cardWidth - desiredWidth - 24,
+      y: heroY + heroHeight - logoHeight - 24,
+      width: desiredWidth,
+      height: logoHeight,
+    });
+  }
 
   page.drawText(displayName, {
     x: cardX + 24,
