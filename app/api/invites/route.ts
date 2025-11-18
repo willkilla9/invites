@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { collection, addDoc, getDocs } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
 // GET ALL INVITES
@@ -11,7 +11,7 @@ export async function GET() {
 
 // CREATE AN INVITE
 export async function POST(req: Request) {
-  const { nom, prenom, phone, email } = await req.json();
+  const { nom, prenom, phone, email, eventId } = await req.json();
 
   if (!nom || !prenom) {
     return NextResponse.json(
@@ -20,14 +20,36 @@ export async function POST(req: Request) {
     );
   }
 
+  if (!eventId) {
+    return NextResponse.json(
+      { error: "Un évènement est requis" },
+      { status: 400 }
+    );
+  }
+
+  const eventRef = doc(db, "events", eventId);
+  const eventSnap = await getDoc(eventRef);
+
+  if (!eventSnap.exists()) {
+    return NextResponse.json({ error: "Évènement introuvable" }, { status: 404 });
+  }
+
+  const eventData = eventSnap.data();
+
   const docRef = await addDoc(collection(db, "invites"), {
     nom,
     prenom,
     phone: phone || null,
     email: email || null,
+    eventId,
+    eventName: eventData.name || null,
+    eventDate: eventData.date || null,
+    eventTime: eventData.time || null,
+    eventPlace: eventData.place || null,
+    eventLogo: eventData.logoUrl || null,
     status: "INVITED",
     createdAt: Date.now(),
   });
 
-  return NextResponse.json({ id: docRef.id, nom, prenom, phone, email });
+  return NextResponse.json({ id: docRef.id, nom, prenom, phone, email, eventId });
 }

@@ -1,18 +1,25 @@
 // app/page.tsx
 import CsvImport from "./components/CsvImport";
+import EventForm from "./components/EventForm";
 import InviteForm from "./components/InviteForm";
 import InviteTable from "./components/InviteTable";
 import Navbar from "./components/Navbar";
 
 export default async function HomePage() {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
-  const res = await fetch(`${baseUrl}/api/invites`, {
-    cache: "no-store",
-  });
-  const invites = await res.json();
+  const [invitesRes, eventsRes] = await Promise.all([
+    fetch(`${baseUrl}/api/invites`, { cache: "no-store" }),
+    fetch(`${baseUrl}/api/events`, { cache: "no-store" }),
+  ]);
+  const invites = invitesRes.ok ? await invitesRes.json() : [];
+  const events = eventsRes.ok ? await eventsRes.json() : [];
   const totalInvites = invites.length;
   const scannedInvites = invites.filter((inv: any) => inv.status === "SCANNED").length;
   const pendingInvites = totalInvites - scannedInvites;
+  const eventsById = events.reduce((acc: Record<string, any>, evt: any) => {
+    acc[evt.id] = evt;
+    return acc;
+  }, {});
 
   return (
     <div className="min-h-screen bg-slate-950/95 bg-[radial-gradient(circle_at_top,_#0f172a,_#020617)] text-slate-50">
@@ -55,15 +62,18 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section id="form" className="grid gap-6 lg:grid-cols-2">
-          <InviteForm />
-          <div id="import">
-            <CsvImport />
+        <section id="form" className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+          <div className="space-y-6">
+            <InviteForm events={events} />
+            <div id="import">
+              <CsvImport events={events} />
+            </div>
           </div>
+          <EventForm />
         </section>
 
         <section id="table">
-          <InviteTable invites={invites} />
+          <InviteTable invites={invites} eventsById={eventsById} />
         </section>
       </main>
     </div>

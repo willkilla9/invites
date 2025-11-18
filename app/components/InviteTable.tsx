@@ -1,6 +1,8 @@
 // components/InviteTable.tsx
 import Link from "next/link";
 
+type EventById = Record<string, { id: string; name: string } | undefined>;
+
 const statusConfig: Record<string, { label: string; className: string }> = {
   SCANNED: {
     label: "Scanné",
@@ -12,7 +14,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   },
 };
 
-export default function InviteTable({ invites }: { invites: any[] }) {
+export default function InviteTable({ invites, eventsById }: { invites: any[]; eventsById: EventById }) {
   return (
     <div className="rounded-3xl border border-white/10 bg-slate-950/40 p-6 text-slate-100 shadow-2xl">
       <div className="flex items-center justify-between">
@@ -29,12 +31,14 @@ export default function InviteTable({ invites }: { invites: any[] }) {
         <div className="grid gap-3 sm:hidden">
           {invites.map((inv) => {
             const status = statusConfig[inv.status] ?? statusConfig.INVITED;
+            const event = eventsById[inv.eventId ?? ""];
             return (
               <div key={inv.id} className="rounded-2xl border border-white/10 bg-slate-900/40 p-4">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-white">{inv.nom}</p>
                     <p className="text-xs text-slate-400">{inv.prenom}</p>
+                    {event && <p className="text-xs text-slate-500">{event.name}</p>}
                   </div>
                   <span className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold ${status.className}`}>
                     {status.label}
@@ -70,6 +74,7 @@ export default function InviteTable({ invites }: { invites: any[] }) {
                   {[
                     "Nom",
                     "Prénom",
+                    "Évènement",
                     "Téléphone",
                     "Email",
                     "Statut",
@@ -84,10 +89,12 @@ export default function InviteTable({ invites }: { invites: any[] }) {
               <tbody className="divide-y divide-white/5">
                 {invites.map((inv) => {
                   const status = statusConfig[inv.status] ?? statusConfig.INVITED;
+                  const event = eventsById[inv.eventId ?? ""];
                   return (
                     <tr key={inv.id} className="transition hover:bg-white/5">
                       <td className="px-4 py-4 font-semibold text-white">{inv.nom}</td>
                       <td className="px-4 py-4 text-slate-300">{inv.prenom}</td>
+                      <td className="px-4 py-4 text-slate-400">{event?.name || "-"}</td>
                       <td className="px-4 py-4 text-slate-400">{inv.phone || "-"}</td>
                       <td className="px-4 py-4 text-slate-400">{inv.email || "-"}</td>
                       <td className="px-4 py-4">
