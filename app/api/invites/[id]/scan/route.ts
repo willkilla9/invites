@@ -3,11 +3,10 @@ import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 
 export async function POST(
-  request: Request,
+  _req: Request,
   context: { params: Promise<{ id: string }> }
 ) {
   const { id } = await context.params;
-
   const ref = doc(db, "invites", id);
   const snap = await getDoc(ref);
 
@@ -22,23 +21,15 @@ export async function POST(
 
   if (invite.status === "SCANNED") {
     return NextResponse.json(
-      {
-        success: false,
-        message: "Déjà scanné",
-        scannedAt: invite.scannedAt,
-      },
+      { success: false, message: "Déjà scanné", scannedAt: invite.scannedAt },
       { status: 400 }
     );
   }
 
-  // Update status
   await updateDoc(ref, {
     status: "SCANNED",
     scannedAt: Date.now(),
   });
 
-  return NextResponse.json({
-    success: true,
-    message: "Invite validée",
-  });
+  return NextResponse.json({ success: true, message: "Invite validée" });
 }

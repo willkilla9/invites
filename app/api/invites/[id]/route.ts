@@ -4,9 +4,10 @@ import { doc, getDoc } from "firebase/firestore";
 
 export async function GET(
   _req: Request,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const ref = doc(db, "invites", params.id);
+  const { id } = await context.params;
+  const ref = doc(db, "invites", id);
   const snap = await getDoc(ref);
 
   if (!snap.exists()) {
