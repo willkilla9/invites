@@ -30,37 +30,234 @@ export async function GET(
   const pdfDoc = await PDFDocument.create();
 
   const page = pdfDoc.addPage([600, 800]);
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const { width, height } = page.getSize();
+  const margin = 36;
 
-  page.drawText("Invitation", {
-    x: 200,
-    y: 750,
-    size: 24,
-    font,
-    color: rgb(0, 0, 0),
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  const accent = rgb(99 / 255, 102 / 255, 241 / 255);
+  const softAccent = rgb(196 / 255, 181 / 255, 253 / 255);
+  const canvas = rgb(7 / 255, 10 / 255, 20 / 255);
+  const card = rgb(18 / 255, 22 / 255, 38 / 255);
+  const muted = rgb(152 / 255, 167 / 255, 198 / 255);
+
+  const drawLabelValue = (
+    label: string,
+    value: string,
+    x: number,
+    y: number,
+    maxWidth?: number
+  ) => {
+    page.drawText(label.toUpperCase(), {
+      x,
+      y,
+      size: 8,
+      font: boldFont,
+      color: muted,
+    });
+    page.drawText(value, {
+      x,
+      y: y - 16,
+      size: 14,
+      font,
+      color: rgb(1, 1, 1),
+      maxWidth,
+      lineHeight: 14,
+    });
+  };
+
+  const fullName = [invite.prenom, invite.nom].filter(Boolean).join(" ") || "Invité";
+  const status = (invite.status || "En attente").toUpperCase();
+  const reference = `INV-${id.slice(-6).toUpperCase()}`;
+  const contactLine = [invite.email, invite.phone].filter(Boolean).join("   •   ") || "Contact à compléter";
+  const eventTitle = invite.eventTitle || "Soirée privée Signature";
+  const eventDate = invite.eventDate || "Samedi 12 Octobre 2024";
+  const eventTime = invite.eventTime || "Accueil entre 19h30 et 21h";
+  const venue = invite.eventVenue || "Atelier Lumière, Paris";
+  const dressCode = invite.dressCode || "Dress code: monochrome & chic";
+  const extraNote =
+    invite.note || "Présentez ce pass numérique avec la pièce d'identité correspondante.";
+
+  // Canvas + halo
+  page.drawRectangle({ x: 0, y: 0, width, height, color: canvas });
+  page.drawRectangle({
+    x: margin / 2,
+    y: height - 220,
+    width: width - margin,
+    height: 180,
+    color: rgb(24 / 255, 22 / 255, 44 / 255),
   });
 
-  page.drawText(`Nom : ${invite.nom}`, { x: 50, y: 700, size: 16, font });
-  page.drawText(`Prénom : ${invite.prenom}`, { x: 50, y: 670, size: 16, font });
-  invite.phone && page.drawText(`Téléphone : ${invite.phone}`, { x: 50, y: 640, size: 16, font });
-  invite.email && page.drawText(`Email : ${invite.email}`, { x: 50, y: 610, size: 16, font });
+  const cardX = margin;
+  const cardWidth = width - margin * 2;
 
-  // Insert QR
+  // Hero
+  const heroHeight = 150;
+  const heroY = height - margin - heroHeight;
+  page.drawRectangle({
+    x: cardX,
+    y: heroY,
+    width: cardWidth,
+    height: heroHeight,
+    color: card,
+    borderColor: accent,
+    borderWidth: 1,
+  });
+  page.drawRectangle({
+    x: cardX,
+    y: heroY + heroHeight - 4,
+    width: cardWidth,
+    height: 4,
+    color: accent,
+  });
+
+  page.drawText("PASS D'INVITATION", {
+    x: cardX + 24,
+    y: heroY + heroHeight - 32,
+    size: 10,
+    font: boldFont,
+    color: softAccent,
+  });
+  page.drawText(eventTitle, {
+    x: cardX + 24,
+    y: heroY + heroHeight - 60,
+    size: 22,
+    font: boldFont,
+    color: rgb(1, 1, 1),
+  });
+  page.drawText(`${eventDate} • ${venue}`, {
+    x: cardX + 24,
+    y: heroY + heroHeight - 84,
+    size: 12,
+    font,
+    color: muted,
+  });
+
+  page.drawText(fullName, {
+    x: cardX + 24,
+    y: heroY + 38,
+    size: 18,
+    font: boldFont,
+    color: rgb(1, 1, 1),
+  });
+  page.drawText(reference, {
+    x: cardX + 24,
+    y: heroY + 16,
+    size: 12,
+    font,
+    color: muted,
+  });
+  page.drawText(status, {
+    x: cardX + cardWidth - 150,
+    y: heroY + 42,
+    size: 14,
+    font: boldFont,
+    color: accent,
+  });
+
+  // Details card
+  const detailsHeight = 260;
+  const detailsY = heroY - 28 - detailsHeight;
+  page.drawRectangle({
+    x: cardX,
+    y: detailsY,
+    width: cardWidth,
+    height: detailsHeight,
+    color: card,
+    borderColor: rgb(34 / 255, 37 / 255, 56 / 255),
+    borderWidth: 1,
+  });
+
+  const colWidth = (cardWidth - 48) / 2;
+  let colY = detailsY + detailsHeight - 40;
+  drawLabelValue("Horaire", `${eventTime}`, cardX + 24, colY, colWidth - 8);
+  drawLabelValue("Lieu", venue, cardX + 24 + colWidth, colY, colWidth - 8);
+
+  colY -= 80;
+  drawLabelValue("Coordonnées", contactLine, cardX + 24, colY, cardWidth - 48);
+
+  colY -= 70;
+  drawLabelValue("Dress code", dressCode, cardX + 24, colY, cardWidth - 48);
+
+  page.drawRectangle({
+    x: cardX + 24,
+    y: colY - 28,
+    width: cardWidth - 48,
+    height: 1,
+    color: rgb(43 / 255, 46 / 255, 64 / 255),
+  });
+
+  page.drawText("À PRÉSENTER À L'ENTRÉE", {
+    x: cardX + 24,
+    y: colY - 46,
+    size: 10,
+    font: boldFont,
+    color: muted,
+  });
+  page.drawText(extraNote, {
+    x: cardX + 24,
+    y: colY - 64,
+    size: 12,
+    font,
+    color: rgb(224 / 255, 231 / 255, 255 / 255),
+    maxWidth: cardWidth - 48,
+    lineHeight: 14,
+  });
+
+  // QR block
+  const qrSize = 170;
+  const qrX = cardX + cardWidth - qrSize - 12;
+  const qrY = margin + 80;
+  page.drawRectangle({
+    x: qrX - 16,
+    y: qrY - 16,
+    width: qrSize + 32,
+    height: qrSize + 32,
+    color: card,
+    borderColor: accent,
+    borderWidth: 1,
+  });
+
   const qrImage = await pdfDoc.embedPng(qrImageBytes);
   page.drawImage(qrImage, {
-    x: 200,
-    y: 400,
-    width: 200,
-    height: 200,
+    x: qrX,
+    y: qrY,
+    width: qrSize,
+    height: qrSize,
+  });
+
+  page.drawText("Scan pour valider l'entrée", {
+    x: qrX - 8,
+    y: qrY + qrSize + 12,
+    size: 10,
+    font,
+    color: muted,
+  });
+
+  page.drawText("Le QR code est unique et lié à cette invitation.", {
+    x: cardX,
+    y: qrY + qrSize + 12,
+    size: 10,
+    font,
+    color: muted,
+  });
+
+  page.drawText("Support: concierge@evenement.com", {
+    x: cardX,
+    y: margin,
+    size: 10,
+    font,
+    color: muted,
   });
 
   const pdfBytes = await pdfDoc.save();
 
-return new NextResponse(Buffer.from(pdfBytes), {
-  headers: {
-    "Content-Type": "application/pdf",
-    "Content-Disposition": "inline; filename=invite.pdf",
-  },
-});
+  return new NextResponse(Buffer.from(pdfBytes), {
+    headers: {
+      "Content-Type": "application/pdf",
+      "Content-Disposition": "inline; filename=invite.pdf",
+    },
+  });
 
 }
