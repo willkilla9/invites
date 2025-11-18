@@ -1,7 +1,11 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
-import { QrReader } from "react-qr-reader";
+
+const QrReader = dynamic(() => import("react-qr-reader").then(res => res.QrReader), {
+  ssr: false,
+});
 
 export default function ScanPage() {
   const [result, setResult] = useState<string | null>(null);
@@ -26,22 +30,21 @@ export default function ScanPage() {
   }
 
   return (
-    <div className="p-8 flex flex-col items-center">
+    <div className="p-8 flex flex-col items-center bg-white">
       <h1 className="text-2xl font-bold mb-6">Scanner une invitation</h1>
 
-      <div className="w-72">
-        <QrReader
-          constraints={{ facingMode: "environment" }} // REQUIRED ✔
-          onResult={(result, error) => {
-            if (!!result) {
-              const text = result.getText();
-              if (text) handleScan(text);
-            }
-          }}
-          videoContainerStyle={{ width: "100%" }}
-          videoStyle={{ width: "100%" }}
-        />
-      </div>
+      <QrReader
+        constraints={{ facingMode: "environment" }} // REQUIRED ✔
+        onResult={(result, error) => {
+          if (!!result) {
+            const text = result.getText();
+            if (text) handleScan(text);
+          }
+        }}
+        containerStyle={{ width: "100%", maxWidth: 320 }}
+        videoContainerStyle={{ width: "100%" }}
+        videoStyle={{ width: "100%", borderRadius: 12 }}
+      />
 
       {status && (
         <p className="mt-6 text-lg font-semibold">{status}</p>
