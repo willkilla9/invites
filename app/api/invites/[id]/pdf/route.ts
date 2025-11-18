@@ -72,7 +72,7 @@ export async function GET(
     ? `Nom : ${fullName}`
     : "Nom : ………………………………";
   const status = (invite.status || "En attente").toUpperCase();
-  const reference = invite.referenceCode || "INV-ID";
+  const reference = invite.referenceCode || id;
   const contactLine =
     [
       invite.email ? `Email : ${invite.email}` : undefined,
