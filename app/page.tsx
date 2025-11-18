@@ -2,6 +2,7 @@
 import CsvImport from "./components/CsvImport";
 import InviteForm from "./components/InviteForm";
 import InviteTable from "./components/InviteTable";
+import Navbar from "./components/Navbar";
 
 export default async function HomePage() {
   const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
@@ -14,9 +15,13 @@ export default async function HomePage() {
   const pendingInvites = totalInvites - scannedInvites;
 
   return (
-    <main className="min-h-screen bg-slate-950/95 bg-[radial-gradient(circle_at_top,_#0f172a,_#020617)] text-slate-50 p-6 md:p-12">
-      <div className="mx-auto max-w-6xl space-y-10">
-        <section className="rounded-3xl border border-white/10 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-8 shadow-2xl shadow-indigo-500/20">
+    <div className="min-h-screen bg-slate-950/95 bg-[radial-gradient(circle_at_top,_#0f172a,_#020617)] text-slate-50">
+      <Navbar />
+      <main className="mx-auto max-w-6xl space-y-12 px-6 pb-16 pt-8 sm:px-8 md:pt-12">
+        <section
+          id="dashboard"
+          className="rounded-3xl border border-white/10 bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 p-6 shadow-2xl shadow-indigo-500/20 sm:p-8"
+        >
           <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Gestion Premium</p>
           <div className="mt-2 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -50,15 +55,17 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section className="grid gap-6 lg:grid-cols-2">
+        <section id="form" className="grid gap-6 lg:grid-cols-2">
           <InviteForm />
-          <CsvImport />
+          <div id="import">
+            <CsvImport />
+          </div>
         </section>
 
-        <section>
+        <section id="table">
           <InviteTable invites={invites} />
         </section>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
