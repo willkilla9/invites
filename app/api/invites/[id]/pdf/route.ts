@@ -67,17 +67,29 @@ export async function GET(
     });
   };
 
-  const fullName = [invite.prenom, invite.nom].filter(Boolean).join(" ") || "Invité";
+  const fullName = [invite.prenom, invite.nom].filter(Boolean).join(" ");
+  const displayName = fullName
+    ? `Nom : ${fullName}`
+    : "Nom : ………………………………";
   const status = (invite.status || "En attente").toUpperCase();
-  const reference = `INV-${id.slice(-6).toUpperCase()}`;
-  const contactLine = [invite.email, invite.phone].filter(Boolean).join("   •   ") || "Contact à compléter";
-  const eventTitle = invite.eventTitle || "Soirée privée Signature";
-  const eventDate = invite.eventDate || "Samedi 12 Octobre 2024";
-  const eventTime = invite.eventTime || "Accueil entre 19h30 et 21h";
-  const venue = invite.eventVenue || "Atelier Lumière, Paris";
-  const dressCode = invite.dressCode || "Dress code: monochrome & chic";
+  const reference = invite.referenceCode || "INV-XXXXXX";
+  const contactLine =
+    [
+      invite.email ? `Email : ${invite.email}` : undefined,
+      invite.phone ? `Téléphone : ${invite.phone}` : undefined,
+    ]
+      .filter(Boolean)
+      .join("   •   ") || "Email : ……………………………… • Téléphone : ……………………";
+  const eventTitle = invite.eventTitle || "Lancement Officiel BotGround";
+  const eventDate = invite.eventDate || "Samedi 22 Novembre 2025";
+  const eventTime =
+    invite.eventTime || "Accueil à partir de 09h00 • Événement : 09h00 – 11h00";
+  const eventVenueHero = invite.eventVenue || "Salle de Conférence (100 places)";
+  const eventVenueDetail =
+    invite.eventVenueDetail || invite.eventVenue || "Salle de Conférence – (nom exact du lieu)";
+  const dressCode = invite.dressCode || "Tenue recommandée : Smart Casual";
   const extraNote =
-    invite.note || "Présentez ce pass numérique avec la pièce d'identité correspondante.";
+    invite.note || "Présentez ce pass numérique accompagné d’une pièce d’identité.";
 
   // Canvas + halo
   page.drawRectangle({ x: 0, y: 0, width, height, color: canvas });
@@ -126,7 +138,7 @@ export async function GET(
     font: boldFont,
     color: rgb(1, 1, 1),
   });
-  page.drawText(`${eventDate} • ${venue}`, {
+  page.drawText(`${eventDate} • ${eventVenueHero}`, {
     x: cardX + 24,
     y: heroY + heroHeight - 84,
     size: 12,
@@ -134,7 +146,7 @@ export async function GET(
     color: muted,
   });
 
-  page.drawText(fullName, {
+  page.drawText(displayName, {
     x: cardX + 24,
     y: heroY + 38,
     size: 18,
@@ -172,7 +184,7 @@ export async function GET(
   const colWidth = (cardWidth - 48) / 2;
   let colY = detailsY + detailsHeight - 40;
   drawLabelValue("Horaire", `${eventTime}`, cardX + 24, colY, colWidth - 8);
-  drawLabelValue("Lieu", venue, cardX + 24 + colWidth, colY, colWidth - 8);
+  drawLabelValue("Lieu", eventVenueDetail, cardX + 24 + colWidth, colY, colWidth - 8);
 
   colY -= 80;
   drawLabelValue("Coordonnées", contactLine, cardX + 24, colY, cardWidth - 48);
