@@ -52,67 +52,88 @@ export default function InviteForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-white p-4 rounded shadow space-y-3"
+      className="relative overflow-hidden rounded-3xl border border-white/10 bg-slate-900/40 p-6 text-slate-100 shadow-2xl"
     >
-      <h2 className="text-lg font-semibold mb-2">Créer une invitation</h2>
+      <div className="absolute inset-x-8 top-4 h-24 rounded-full bg-gradient-to-r from-indigo-500/20 to-purple-500/10 blur-3xl" />
+      <div className="relative space-y-5">
+        <div>
+          <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Créer</p>
+          <h2 className="text-2xl font-semibold text-white">Nouvelle invitation</h2>
+          <p className="mt-1 text-sm text-slate-400">
+            Ajoutez une personne et suivez immédiatement son statut dans le tableau.
+          </p>
+        </div>
 
-      {message && <p className="text-green-600 text-sm">{message}</p>}
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+        {message && (
+          <p className="rounded-xl border border-emerald-400/40 bg-emerald-500/20 px-4 py-2 text-sm text-emerald-100">
+            {message}
+          </p>
+        )}
+        {error && (
+          <p className="rounded-xl border border-red-400/40 bg-red-500/10 px-4 py-2 text-sm text-red-200">
+            {error}
+          </p>
+        )}
 
-      <div>
-        <label className="block text-sm font-medium mb-1">
-          Nom <span className="text-red-500">*</span>
-        </label>
-        <input
-          className="border rounded w-full p-2 text-sm"
-          value={nom}
-          onChange={(e) => setNom(e.target.value)}
-          required
-        />
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="block text-sm font-medium text-slate-300">
+              Nom <span className="text-rose-400">*</span>
+            </label>
+            <input
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+              value={nom}
+              onChange={(e) => setNom(e.target.value)}
+              required
+              placeholder="Ex: Martin"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-300">
+              Prénom <span className="text-rose-400">*</span>
+            </label>
+            <input
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+              value={prenom}
+              onChange={(e) => setPrenom(e.target.value)}
+              required
+              placeholder="Ex: Léa"
+            />
+          </div>
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div>
+            <label className="block text-sm font-medium text-slate-300">Téléphone</label>
+            <input
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+              placeholder="06 44 33 22 11"
+            />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-300">Email</label>
+            <input
+              type="email"
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="invite@email.com"
+            />
+          </div>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className="w-full rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {loading ? "Enregistrement..." : "Créer l'invitation"}
+        </button>
       </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">
-          Prénom <span className="text-red-500">*</span>
-        </label>
-        <input
-          className="border rounded w-full p-2 text-sm"
-          value={prenom}
-          onChange={(e) => setPrenom(e.target.value)}
-          required
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">
-          Téléphone (optionnel)
-        </label>
-        <input
-          className="border rounded w-full p-2 text-sm"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-        />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium mb-1">
-          Email (optionnel)
-        </label>
-        <input
-          type="email"
-          className="border rounded w-full p-2 text-sm"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
-      </div>
-
-      <button
-        type="submit"
-        disabled={loading}
-        className="bg-blue-600 text-white px-4 py-2 rounded text-sm disabled:opacity-60"
-      >
-        {loading ? "Enregistrement..." : "Créer l'invitation"}
-      </button>
     </form>
   );
 }
