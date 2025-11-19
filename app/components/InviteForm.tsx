@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useAuth } from "./AuthProvider";
 
 type EventOption = {
   id: string;
@@ -8,6 +9,7 @@ type EventOption = {
 };
 
 export default function InviteForm({ events }: { events: EventOption[] }) {
+  const { token } = useAuth();
   const [nom, setNom] = useState("");
   const [prenom, setPrenom] = useState("");
   const [phone, setPhone] = useState("");
@@ -31,6 +33,12 @@ export default function InviteForm({ events }: { events: EventOption[] }) {
     setMessage(null);
     setError(null);
 
+    if (!token) {
+      setError("Vous devez être connecté pour créer une invitation");
+      setLoading(false);
+      return;
+    }
+
     if (!eventId) {
       setError("Merci de créer un évènement avant d'ajouter des invitations");
       setLoading(false);
@@ -40,7 +48,10 @@ export default function InviteForm({ events }: { events: EventOption[] }) {
     try {
       const res = await fetch("/api/invites", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({
           nom,
           prenom,
@@ -183,10 +194,10 @@ export default function InviteForm({ events }: { events: EventOption[] }) {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !token}
           className="w-full rounded-2xl bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Enregistrement..." : "Créer l'invitation"}
+          {!token ? "Authentifiez-vous" : loading ? "Enregistrement..." : "Créer l'invitation"}
         </button>
       </div>
     </form>
