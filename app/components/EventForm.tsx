@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "./AuthProvider";
 
 export default function EventForm() {
+  const { token } = useAuth();
   const [name, setName] = useState("");
   const [logoUrl, setLogoUrl] = useState("");
   const [date, setDate] = useState("");
@@ -18,10 +20,19 @@ export default function EventForm() {
     setMessage(null);
     setError(null);
 
+    if (!token) {
+      setError("Vous devez être connecté pour créer un évènement");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await fetch("/api/events", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
         body: JSON.stringify({ name, logoUrl, date, time, place }),
       });
 
@@ -133,10 +144,10 @@ export default function EventForm() {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !token}
           className="w-full rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-500 to-indigo-500 px-4 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Enregistrement..." : "Créer l'évènement"}
+          {!token ? "Authentifiez-vous" : loading ? "Enregistrement..." : "Créer l'évènement"}
         </button>
       </div>
     </form>

@@ -1,5 +1,8 @@
+"use client";
+
 // components/InviteTable.tsx
-import Link from "next/link";
+import { useState } from "react";
+import { useAuth } from "./AuthProvider";
 
 type EventById = Record<string, { id: string; name: string } | undefined>;
 
@@ -15,6 +18,42 @@ const statusConfig: Record<string, { label: string; className: string }> = {
 };
 
 export default function InviteTable({ invites, eventsById }: { invites: any[]; eventsById: EventById }) {
+  const { token } = useAuth();
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const [downloadError, setDownloadError] = useState<string | null>(null);
+
+  const handleDownload = async (inviteId: string) => {
+    if (!token) {
+      setDownloadError("Connectez-vous pour télécharger le PDF");
+      return;
+    }
+
+    setDownloadError(null);
+    setDownloadingId(inviteId);
+    try {
+      const res = await fetch(`/api/invites/${inviteId}/pdf`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (!res.ok) {
+        throw new Error("download-failed");
+      }
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `invitation-${inviteId}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("downloadPdf", error);
+      setDownloadError("Impossible de télécharger l'invitation. Réessayez.");
+    } finally {
+      setDownloadingId(null);
+    }
+  };
+
   return (
     <div className="rounded-3xl border border-white/10 bg-slate-950/40 p-6 text-slate-100 shadow-2xl">
       <div className="flex items-center justify-between">
@@ -54,13 +93,12 @@ export default function InviteTable({ invites, eventsById }: { invites: any[]; e
                     <dd className="text-slate-200">{inv.email || "-"}</dd>
                   </div>
                 </dl>
-                <Link
+                <button
+                  onClick={() => handleDownload(inv.id)}
                   className="mt-3 inline-flex w-full items-center justify-center rounded-xl border border-indigo-400/40 px-3 py-2 text-xs font-semibold text-indigo-200 transition hover:border-indigo-300 hover:text-white"
-                  href={`/api/invites/${inv.id}/pdf`}
-                  target="_blank"
                 >
-                  Télécharger le PDF
-                </Link>
+                  {downloadingId === inv.id ? "Préparation..." : "Télécharger le PDF"}
+                </button>
               </div>
             );
           })}
@@ -105,13 +143,12 @@ export default function InviteTable({ invites, eventsById }: { invites: any[]; e
                         </span>
                       </td>
                       <td className="px-4 py-4">
-                        <Link
+                        <button
+                          onClick={() => handleDownload(inv.id)}
                           className="inline-flex items-center gap-2 rounded-full border border-indigo-400/40 px-3 py-1 text-xs font-semibold text-indigo-200 transition hover:border-indigo-300 hover:text-white"
-                          href={`/api/invites/${inv.id}/pdf`}
-                          target="_blank"
                         >
-                          Télécharger PDF
-                        </Link>
+                          {downloadingId === inv.id ? "Préparation..." : "Télécharger PDF"}
+                        </button>
                       </td>
                     </tr>
                   );
@@ -120,6 +157,9 @@ export default function InviteTable({ invites, eventsById }: { invites: any[]; e
             </table>
           </div>
         </div>
+        {downloadError && (
+          <p className="text-sm text-red-200">{downloadError}</p>
+        )}
       </div>
     </div>
   );

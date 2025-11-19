@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { collection, addDoc, getDocs, doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { verifyRequestAuth } from "@/lib/serverAuth";
 
 // GET ALL INVITES
-export async function GET() {
+export async function GET(req: Request) {
+  const auth = await verifyRequestAuth(req);
+  if (!auth.ok) return auth.response;
+
   const snapshot = await getDocs(collection(db, "invites"));
   const invites = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   return NextResponse.json(invites);
@@ -11,6 +15,9 @@ export async function GET() {
 
 // CREATE AN INVITE
 export async function POST(req: Request) {
+  const auth = await verifyRequestAuth(req);
+  if (!auth.ok) return auth.response;
+
   const { nom, prenom, phone, email, eventId } = await req.json();
 
   if (!nom || !prenom) {
