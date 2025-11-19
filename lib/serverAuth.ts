@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { firebaseApiKey } from "./firebaseConfig";
 
 type AuthSuccess = {
   ok: true;
@@ -22,19 +23,11 @@ export async function verifyRequestAuth(req: Request): Promise<AuthSuccess | Aut
     };
   }
 
-  const apiKey = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
-  if (!apiKey) {
-    return {
-      ok: false,
-      response: NextResponse.json({ error: "Configuration Firebase manquante" }, { status: 500 }),
-    };
-  }
-
   const token = authHeader.replace("Bearer ", "");
 
   try {
     const lookupResponse = await fetch(
-      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${apiKey}`,
+      `https://identitytoolkit.googleapis.com/v1/accounts:lookup?key=${firebaseApiKey}`,
       {
         method: "POST",
         headers: {
