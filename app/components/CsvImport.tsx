@@ -3,12 +3,10 @@
 
 import Papa from "papaparse";
 import { useEffect, useMemo, useState } from "react";
-import { useAuth } from "./AuthProvider";
 
 type EventOption = { id: string; name: string };
 
 export default function CsvImport({ events }: { events: EventOption[] }) {
-  const { token } = useAuth();
   const [message, setMessage] = useState("");
   const [eventId, setEventId] = useState(events[0]?.id ?? "");
 
@@ -24,11 +22,6 @@ export default function CsvImport({ events }: { events: EventOption[] }) {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    if (!token) {
-      setMessage("Authentifiez-vous pour importer un fichier.");
-      return;
-    }
-
     if (!eventId) {
       setMessage("Merci de sélectionner un évènement avant l'import.");
       return;
@@ -41,10 +34,7 @@ export default function CsvImport({ events }: { events: EventOption[] }) {
 
         const res = await fetch("/api/invites/import", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ rows, eventId }),
         });
 
@@ -98,7 +88,7 @@ export default function CsvImport({ events }: { events: EventOption[] }) {
             accept=".csv"
             onChange={handleFile}
             className="hidden"
-            disabled={!events.length || !token}
+            disabled={!events.length}
           />
           <span className="text-base font-semibold text-white">Sélectionner un fichier CSV</span>
           <span className="mt-1 text-xs text-slate-400">Jusqu&apos;à 5 000 lignes supportées</span>
@@ -106,9 +96,6 @@ export default function CsvImport({ events }: { events: EventOption[] }) {
 
         {message && (
           <p className="rounded-xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-slate-200">{message}</p>
-        )}
-        {!token && (
-          <p className="text-xs text-slate-400">Connectez-vous pour activer l&apos;import.</p>
         )}
       </div>
     </div>

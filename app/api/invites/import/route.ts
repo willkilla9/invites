@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
 import { addDoc, collection, doc, getDoc } from "firebase/firestore";
-import { verifyRequestAuth } from "@/lib/serverAuth";
 
 export async function POST(req: Request) {
-  const auth = await verifyRequestAuth(req);
-  if (!auth.ok) return auth.response;
-
   const { rows, eventId } = await req.json();
 
   if (!Array.isArray(rows)) {
