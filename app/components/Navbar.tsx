@@ -1,10 +1,10 @@
 import Link from "next/link";
 
 const navLinks = [
-  { href: "#dashboard", label: "Tableau" },
-  { href: "#form", label: "Inviter" },
-  { href: "#import", label: "Importer" },
-  { href: "#table", label: "Suivi" },
+  { href: "/#dashboard", label: "Tableau" },
+  { href: "/#form", label: "Inviter" },
+  { href: "/#import", label: "Importer" },
+  { href: "/#table", label: "Suivi" },
 ];
 
 export default function Navbar() {
@@ -23,26 +23,36 @@ export default function Navbar() {
 
         <nav className="hidden items-center gap-6 text-sm text-slate-300 md:flex">
           {navLinks.map((link) => (
-            <a key={link.href} href={link.href} className="transition hover:text-white">
+            <Link key={link.href} href={link.href} className="transition hover:text-white">
               {link.label}
-            </a>
+            </Link>
           ))}
         </nav>
 
         <div className="flex flex-1 items-center justify-end gap-3 md:flex-none">
           <div className="flex flex-1 items-center gap-3 overflow-x-auto text-xs text-slate-300 md:hidden">
             {navLinks.map((link) => (
-              <a key={link.href} href={link.href} className="rounded-full border border-white/10 px-3 py-1 whitespace-nowrap">
+              <Link
+                key={link.href}
+                href={link.href}
+                className="rounded-full border border-white/10 px-3 py-1 whitespace-nowrap hover:text-white"
+              >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </div>
-          <a
-            href="#import"
+          <Link
+            href="/events"
+            className="inline-flex items-center gap-2 rounded-full border border-white/10 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:border-white/30"
+          >
+            Gérer les évènements
+          </Link>
+          <Link
+            href="/#import"
             className="inline-flex items-center gap-2 rounded-full bg-white/10 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-white/20"
           >
             Importer un CSV
-          </a>
+          </Link>
         </div>
       </div>
     </header>
