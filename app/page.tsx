@@ -1,6 +1,6 @@
 // app/page.tsx
+import Link from "next/link";
 import CsvImport from "./components/CsvImport";
-import EventForm from "./components/EventForm";
 import InviteForm from "./components/InviteForm";
 import InviteTable from "./components/InviteTable";
 import Navbar from "./components/Navbar";
@@ -62,14 +62,25 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section id="form" className="grid gap-6 lg:grid-cols-[2fr,1fr]">
-          <div className="space-y-6">
-            <InviteForm events={events} />
-            <div id="import">
-              <CsvImport events={events} />
-            </div>
+        <section id="form" className="space-y-6">
+          <InviteForm events={events} />
+          <div id="import">
+            <CsvImport events={events} />
           </div>
-          <EventForm />
+          <div className="rounded-3xl border border-white/10 bg-slate-900/60 p-6 text-slate-100">
+            <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Évènements</p>
+            <h3 className="mt-2 text-2xl font-semibold text-white">Gérez vos évènements</h3>
+            <p className="mt-2 text-sm text-slate-300">
+              La création et l&apos;édition des évènements ont désormais leur propre espace. Accédez-y pour gérer le
+              contexte de vos invitations.
+            </p>
+            <Link
+              href="/events"
+              className="mt-4 inline-flex items-center justify-center rounded-2xl border border-white/20 bg-white/10 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-indigo-500/30 transition hover:bg-white/20"
+            >
+              Accéder à la page évènements
+            </Link>
+          </div>
         </section>
 
         <section id="table">
