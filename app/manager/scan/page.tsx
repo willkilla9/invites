@@ -2,6 +2,7 @@
 
 import dynamic from "next/dynamic";
 import { useCallback, useMemo, useState } from "react";
+import { useAuth } from "../../components/AuthProvider";
 
 const QrReader = dynamic(() => import("react-qr-reader").then(res => res.QrReader), {
   ssr: false,
@@ -20,6 +21,7 @@ const baseFeedback: ScanFeedback = {
 };
 
 export default function ScanPage() {
+  const { token, user, loading } = useAuth();
   const [result, setResult] = useState<string | null>(null);
   const [status, setStatus] = useState<ScanFeedback>(baseFeedback);
   const [isCoolingDown, setIsCoolingDown] = useState(false);
@@ -60,6 +62,15 @@ export default function ScanPage() {
       if (!text) return;
       if (result === text || isCoolingDown) return; // avoid duplicates while the message is visible
 
+      if (!token) {
+        setStatus({
+          badge: "Connexion requise",
+          tone: "error",
+          message: "Identifiez-vous pour scanner les invitations.",
+        });
+        return;
+      }
+
       setIsCoolingDown(true);
       setResult(text);
       setError(null);
@@ -67,6 +78,7 @@ export default function ScanPage() {
       try {
         const res = await fetch(`/api/invites/${text}/scan`, {
           method: "POST",
+          headers: { Authorization: `Bearer ${token}` },
         });
 
         const data = await res.json();
@@ -95,8 +107,19 @@ export default function ScanPage() {
         setTimeout(() => setIsCoolingDown(false), 2200);
       }
     },
-    [isCoolingDown, result],
+    [isCoolingDown, result, token],
   );
+
+  if (!loading && !user) {
+    return (
+      <div className="min-h-screen bg-slate-950 text-white px-6 py-12">
+        <div className="mx-auto max-w-3xl text-center">
+          <p className="text-sm uppercase tracking-[0.3em] text-slate-400">Accès restreint</p>
+          <h1 className="mt-3 text-3xl font-semibold">Connectez-vous pour utiliser la station de scan</h1>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-slate-950 text-white px-6 py-12">
