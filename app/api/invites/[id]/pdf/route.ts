@@ -5,15 +5,11 @@ import { PDFDocument, StandardFonts, rgb } from "pdf-lib";
 import QRCode from "qrcode";
 import { db } from "@/lib/firebase";
 import { doc, getDoc } from "firebase/firestore";
-import { verifyRequestAuth } from "@/lib/serverAuth";
 
 export async function GET(
   request: Request,
   context: { params: Promise<{ id: string }> }
 ) {
-  const auth = await verifyRequestAuth(request);
-  if (!auth.ok) return auth.response;
-
   const { id } = await context.params;
 
   const ref = doc(db, "invites", id);
