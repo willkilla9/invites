@@ -1,4 +1,4 @@
-import tls from "tls";
+import nodemailer, { Transporter } from "nodemailer";
 
 type InviteEmailPayload = {
   to: string;
@@ -15,58 +15,6 @@ type MailConfig = {
   user: string;
   pass: string;
   from: string;
-  envelopeFrom: string;
-};
-
-const responseComplete = (buffer: string) => {
-  const lines = buffer.split(/\r?\n/).filter(Boolean);
-  if (!lines.length) return false;
-  const lastLine = lines[lines.length - 1];
-  return /^\d{3}\s/.test(lastLine);
-};
-
-const waitForResponse = (socket: tls.TLSSocket) =>
-  new Promise<string>((resolve, reject) => {
-    let buffer = "";
-    const cleanup = () => {
-      socket.off("data", onData);
-      socket.off("error", onError);
-      socket.off("timeout", onTimeout);
-    };
-    const onData = (chunk: Buffer) => {
-      buffer += chunk.toString();
-      if (responseComplete(buffer)) {
-        cleanup();
-        resolve(buffer);
-      }
-    };
-    const onError = (err: Error) => {
-      cleanup();
-      reject(err);
-    };
-    const onTimeout = () => {
-      cleanup();
-      reject(new Error("SMTP timeout"));
-    };
-
-    socket.on("data", onData);
-    socket.once("error", onError);
-    socket.once("timeout", onTimeout);
-  });
-
-const sendCommand = async (socket: tls.TLSSocket, command: string) => {
-  socket.write(`${command}\r\n`);
-  return waitForResponse(socket);
-};
-
-const sendDataBlock = async (socket: tls.TLSSocket, data: string) => {
-  socket.write(`${data}\r\n.\r\n`);
-  return waitForResponse(socket);
-};
-
-const extractEnvelope = (input: string) => {
-  const match = input.match(/<([^>]+)>/);
-  return (match ? match[1] : input).trim();
 };
 
 const getMailConfig = (): MailConfig => {
@@ -80,7 +28,7 @@ const getMailConfig = (): MailConfig => {
     throw new Error("Configuration SMTP incomplète");
   }
 
-  return { host, port, user, pass, from, envelopeFrom: extractEnvelope(from) };
+  return { host, port, user, pass, from };
 };
 
 const baseUrl =
@@ -92,11 +40,7 @@ const buildInviteUrl = (inviteId: string) => {
   return `${normalizedBase}/invite/${inviteId}`;
 };
 
-const buildMessage = (
-  payload: InviteEmailPayload,
-  from: string,
-  subject: string,
-) => {
+const buildMessage = (payload: InviteEmailPayload) => {
   const inviteUrl = buildInviteUrl(payload.inviteId);
   const guest = payload.guestName || "Invité";
   const eventName = payload.eventName || "votre évènement";
@@ -121,46 +65,36 @@ const buildMessage = (
     `Merci.`,
   ].join("\n");
 
-  const headers = [
-    `From: ${from}`,
-    `To: ${payload.to}`,
-    `Subject: ${subject}`,
-    `MIME-Version: 1.0`,
-    `Content-Type: text/html; charset="utf-8"`,
-    `Content-Transfer-Encoding: 8bit`,
-  ];
-
-  return `${headers.join("\r\n")}\r\n\r\n${html}`;
+  return { html, text };
 };
 
-const sendMail = async (payload: InviteEmailPayload) => {
-  const config = getMailConfig();
-  const subject = `Invitation - ${payload.eventName || "Évènement"}`;
-  const message = buildMessage(payload, config.from, subject);
+let cachedTransporter: Transporter | null = null;
 
-  const socket = tls.connect({
+const getTransporter = () => {
+  if (cachedTransporter) return cachedTransporter;
+  const config = getMailConfig();
+  cachedTransporter = nodemailer.createTransport({
     host: config.host,
     port: config.port,
-    rejectUnauthorized: false,
+    secure: config.port === 465,
+    auth: {
+      user: config.user,
+      pass: config.pass,
+    },
   });
-  socket.setTimeout(15000);
-
-  try {
-    await waitForResponse(socket); // greeting
-    await sendCommand(socket, "EHLO invite-app.local");
-    await sendCommand(socket, "AUTH LOGIN");
-    await sendCommand(socket, Buffer.from(config.user).toString("base64"));
-    await sendCommand(socket, Buffer.from(config.pass).toString("base64"));
-    await sendCommand(socket, `MAIL FROM:<${config.envelopeFrom}>`);
-    await sendCommand(socket, `RCPT TO:<${payload.to}>`);
-    await sendCommand(socket, "DATA");
-    await sendDataBlock(socket, message);
-    await sendCommand(socket, "QUIT");
-  } finally {
-    socket.end();
-  }
+  return cachedTransporter;
 };
 
 export async function sendInviteEmail(payload: InviteEmailPayload) {
-  await sendMail(payload);
+  const config = getMailConfig();
+  const subject = `Invitation - ${payload.eventName || "Évènement"}`;
+  const message = buildMessage(payload);
+
+  await getTransporter().sendMail({
+    from: config.from,
+    to: payload.to,
+    subject,
+    html: message.html,
+    text: message.text,
+  });
 }
