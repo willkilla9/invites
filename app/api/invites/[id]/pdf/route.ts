@@ -23,6 +23,9 @@ export async function GET(
   }
 
   const invite = snap.data();
+  if (invite.createdBy && invite.createdBy !== auth.user.localId) {
+    return NextResponse.json({ error: "Invite non autorisée" }, { status: 403 });
+  }
 
   let eventData: Record<string, any> | null = null;
   if (invite.eventId) {

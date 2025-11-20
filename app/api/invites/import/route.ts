@@ -25,6 +25,9 @@ export async function POST(req: Request) {
   }
 
   const eventData = eventSnap.data();
+  if (eventData.createdBy && eventData.createdBy !== auth.user.localId) {
+    return NextResponse.json({ error: "Évènement non autorisé" }, { status: 403 });
+  }
 
   let imported = 0;
 
@@ -49,6 +52,8 @@ export async function POST(req: Request) {
       eventLogo: eventData.logoUrl || null,
       status: "INVITED",
       createdAt: Date.now(),
+      createdBy: auth.user.localId,
+      createdByEmail: auth.user.email ?? null,
     });
 
     imported++;

@@ -22,6 +22,12 @@ export async function POST(
   }
 
   const invite = snap.data();
+  if (invite.createdBy && invite.createdBy !== auth.user.localId) {
+    return NextResponse.json(
+      { success: false, message: "Invite non autorisée" },
+      { status: 403 },
+    );
+  }
 
   if (invite.status === "SCANNED") {
     return NextResponse.json(

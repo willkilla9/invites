@@ -18,5 +18,10 @@ export async function GET(
     return NextResponse.json({ error: "Invite introuvable" }, { status: 404 });
   }
 
-  return NextResponse.json({ id: snap.id, ...snap.data() });
+  const invite = snap.data();
+  if (invite.createdBy && invite.createdBy !== auth.user.localId) {
+    return NextResponse.json({ error: "Invite non autorisée" }, { status: 403 });
+  }
+
+  return NextResponse.json({ id: snap.id, ...invite });
 }

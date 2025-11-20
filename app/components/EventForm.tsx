@@ -10,6 +10,7 @@ export default function EventForm() {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [place, setPlace] = useState("");
+  const [publicInvitesEnabled, setPublicInvitesEnabled] = useState(false);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,7 +34,7 @@ export default function EventForm() {
           "Content-Type": "application/json",
           Authorization: `Bearer ${token}`,
         },
-        body: JSON.stringify({ name, logoUrl, date, time, place }),
+        body: JSON.stringify({ name, logoUrl, date, time, place, publicInvitesEnabled }),
       });
 
       const data = await res.json();
@@ -49,6 +50,7 @@ export default function EventForm() {
       setDate("");
       setTime("");
       setPlace("");
+      setPublicInvitesEnabled(false);
       // Reload to inject the new event inside the other forms
       window.location.reload();
     } catch (err) {
@@ -130,16 +132,36 @@ export default function EventForm() {
             </div>
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-300">Lieu</label>
-            <input
-              type="text"
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
-              value={place}
-              onChange={(e) => setPlace(e.target.value)}
-              placeholder="Salle Atlas – Technopark"
-            />
+        <div>
+          <label className="block text-sm font-medium text-slate-300">Lieu</label>
+          <input
+            type="text"
+            className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+            value={place}
+            onChange={(e) => setPlace(e.target.value)}
+            placeholder="Salle Atlas – Technopark"
+          />
+        </div>
+
+        <div className="rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
+          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <p className="font-medium text-white">Inscriptions publiques</p>
+              <p className="text-xs text-slate-400">
+                Partagez un formulaire d&apos;inscription et suivez la provenance via des campagnes dédiées.
+              </p>
+            </div>
+            <label className="mt-2 inline-flex items-center gap-2 text-xs uppercase tracking-[0.3em] text-slate-400 sm:mt-0">
+              <input
+                type="checkbox"
+                className="h-4 w-4 rounded border-white/30 bg-transparent text-indigo-500 focus:ring-indigo-400"
+                checked={publicInvitesEnabled}
+                onChange={(e) => setPublicInvitesEnabled(e.target.checked)}
+              />
+              <span className="text-slate-200">{publicInvitesEnabled ? "Activé" : "Désactivé"}</span>
+            </label>
           </div>
+        </div>
         </div>
 
         <button

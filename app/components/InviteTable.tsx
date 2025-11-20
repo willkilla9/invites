@@ -82,6 +82,11 @@ export default function InviteTable({ invites, eventsById }: { invites: any[]; e
                   <span className={`inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold ${status.className}`}>
                     {status.label}
                   </span>
+                  {(inv.campaignName || inv.campaignSlug) && (
+                    <span className="mt-2 inline-flex w-fit rounded-full border border-cyan-400/40 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-cyan-100">
+                      {inv.campaignName || inv.campaignSlug}
+                    </span>
+                  )}
                 </div>
                 <dl className="mt-3 space-y-1 text-xs text-slate-400">
                   <div className="flex justify-between">
@@ -115,6 +120,7 @@ export default function InviteTable({ invites, eventsById }: { invites: any[]; e
                     "Évènement",
                     "Téléphone",
                     "Email",
+                    "Campagne",
                     "Statut",
                     "Document",
                   ].map((col) => (
@@ -135,6 +141,15 @@ export default function InviteTable({ invites, eventsById }: { invites: any[]; e
                       <td className="px-4 py-4 text-slate-400">{event?.name || "-"}</td>
                       <td className="px-4 py-4 text-slate-400">{inv.phone || "-"}</td>
                       <td className="px-4 py-4 text-slate-400">{inv.email || "-"}</td>
+                      <td className="px-4 py-4 text-slate-300">
+                        {inv.campaignName || inv.campaignSlug ? (
+                          <span className="rounded-full border border-cyan-400/40 bg-cyan-500/10 px-3 py-1 text-xs font-semibold text-cyan-100">
+                            {inv.campaignName || inv.campaignSlug}
+                          </span>
+                        ) : (
+                          <span className="text-slate-500">—</span>
+                        )}
+                      </td>
                       <td className="px-4 py-4">
                         <span
                           className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${status.className}`}

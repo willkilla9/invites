@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { collection, addDoc, getDocs, doc, getDoc } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, getDoc, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { verifyRequestAuth } from "@/lib/serverAuth";
 
@@ -8,7 +8,11 @@ export async function GET(req: Request) {
   const auth = await verifyRequestAuth(req);
   if (!auth.ok) return auth.response;
 
-  const snapshot = await getDocs(collection(db, "invites"));
+  const invitesQuery = query(
+    collection(db, "invites"),
+    where("createdBy", "==", auth.user.localId),
+  );
+  const snapshot = await getDocs(invitesQuery);
   const invites = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() }));
   return NextResponse.json(invites);
 }
@@ -42,6 +46,9 @@ export async function POST(req: Request) {
   }
 
   const eventData = eventSnap.data();
+  if (eventData.createdBy && eventData.createdBy !== auth.user.localId) {
+    return NextResponse.json({ error: "Évènement non autorisé" }, { status: 403 });
+  }
 
   const docRef = await addDoc(collection(db, "invites"), {
     nom,
@@ -56,7 +63,16 @@ export async function POST(req: Request) {
     eventLogo: eventData.logoUrl || null,
     status: "INVITED",
     createdAt: Date.now(),
+    createdBy: auth.user.localId,
+    createdByEmail: auth.user.email ?? null,
   });
 
-  return NextResponse.json({ id: docRef.id, nom, prenom, phone, email, eventId });
+  return NextResponse.json({
+    id: docRef.id,
+    nom,
+    prenom,
+    phone: phone || null,
+    email: email || null,
+    eventId,
+  });
 }
