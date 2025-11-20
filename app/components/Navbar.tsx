@@ -32,10 +32,10 @@ export default function Navbar() {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-6 py-4 text-slate-100 sm:px-8">
         <Link href="/" className="flex items-center gap-2 text-lg font-semibold tracking-tight text-white">
           <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-pink-500 text-base font-bold text-white shadow-lg shadow-indigo-500/40">
-            GP
+            II
           </span>
           <div className="leading-tight">
-            Gestion <span className="text-indigo-300">Pro</span>
+            I <span className="text-indigo-300">Invite</span> You
             <p className="text-[11px] font-normal uppercase tracking-[0.4em] text-slate-400">Invitations</p>
           </div>
         </Link>

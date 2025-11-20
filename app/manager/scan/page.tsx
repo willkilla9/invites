@@ -126,7 +126,7 @@ export default function ScanPage() {
       <div className="mx-auto max-w-5xl space-y-10">
         <header className="text-center space-y-4">
           <p className="text-sm uppercase tracking-[0.3em] text-blue-200/80">
-            BotGround Manager • Contrôle des accès
+            I Invite You • Contrôle des accès
           </p>
           <h1 className="text-3xl font-semibold sm:text-4xl">
             Station de scan premium
