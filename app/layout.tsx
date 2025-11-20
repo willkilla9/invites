@@ -3,7 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "./components/AuthProvider";
 
 export const metadata: Metadata = {
-  title: "Gestion Pro Invitations",
+  title: "I Invite You",
   description: "Générez, envoyez et contrôlez vos invitations en toute sécurité",
 };
 
