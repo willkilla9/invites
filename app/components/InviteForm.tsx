@@ -181,13 +181,16 @@ export default function InviteForm({ events }: { events: EventOption[] }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-300">Email</label>
+            <label className="block text-sm font-medium text-slate-300">
+              Email <span className="text-rose-400">*</span>
+            </label>
             <input
               type="email"
               className="mt-2 w-full rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="invite@email.com"
+              required
             />
           </div>
         </div>

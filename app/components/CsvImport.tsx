@@ -67,7 +67,8 @@ export default function CsvImport({ events }: { events: EventOption[] }) {
           <p className="text-xs uppercase tracking-[0.4em] text-slate-400">Importer</p>
           <h2 className="text-2xl font-semibold text-white">Importer un CSV</h2>
           <p className="mt-1 text-sm text-slate-400">
-            Glissez ou sélectionnez un fichier avec les colonnes nom, prénom, téléphone, email.
+            Glissez ou sélectionnez un fichier avec les colonnes nom, prénom, téléphone,{" "}
+            <span className="font-semibold text-slate-200">email obligatoire</span>.
           </p>
         </div>
 

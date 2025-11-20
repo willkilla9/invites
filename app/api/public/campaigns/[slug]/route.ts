@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
-import { addDoc, collection, doc, getDoc, getDocs, limit, query, where } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, limit, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import { normalizeEmail } from "@/lib/email";
+import { sendInviteEmail } from "@/lib/mailer";
 
 const campaignsCollection = collection(db, "campaigns");
 
@@ -74,10 +76,15 @@ export async function POST(
     return NextResponse.json({ error: "Nom et prénom sont requis" }, { status: 400 });
   }
 
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail) {
+    return NextResponse.json({ error: "Une adresse email valide est requise" }, { status: 400 });
+  }
+
   const invitePayload = {
     nom,
     prenom,
-    email: email?.trim() || null,
+    email: normalizedEmail,
     phone: phone?.trim() || null,
     eventId: campaign.data.eventId,
     eventName: event.name || campaign.data.eventName || null,
@@ -96,5 +103,20 @@ export async function POST(
   };
 
   const inviteDoc = await addDoc(collection(db, "invites"), invitePayload);
+  try {
+    await sendInviteEmail({
+      to: normalizedEmail,
+      inviteId: inviteDoc.id,
+      guestName: `${prenom} ${nom}`.trim(),
+      eventName: invitePayload.eventName,
+      eventDate: invitePayload.eventDate,
+      eventPlace: invitePayload.eventPlace,
+    });
+  } catch (error) {
+    console.error("sendInviteEmail-public-campaign", error);
+    await deleteDoc(inviteDoc);
+    return NextResponse.json({ error: "Impossible d'envoyer l'email d'invitation." }, { status: 502 });
+  }
+
   return NextResponse.json({ success: true, id: inviteDoc.id });
 }

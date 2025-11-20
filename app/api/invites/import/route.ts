@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/firebase";
-import { addDoc, collection, doc, getDoc } from "firebase/firestore";
+import { addDoc, collection, deleteDoc, doc, getDoc } from "firebase/firestore";
 import { verifyRequestAuth } from "@/lib/serverAuth";
+import { normalizeEmail } from "@/lib/email";
+import { sendInviteEmail } from "@/lib/mailer";
 
 export async function POST(req: Request) {
   const auth = await verifyRequestAuth(req);
@@ -31,19 +33,30 @@ export async function POST(req: Request) {
 
   let imported = 0;
 
-  for (const row of rows) {
-    const nom = row.nom || row.Nom;
-    const prenom = row.prenom || row.Prenom;
-    const phone = row.phone || row["numero de tele"];
-    const email = row.email;
+  for (let index = 0; index < rows.length; index++) {
+    const row = rows[index];
+    const nom = (row.nom || row.Nom || "").trim();
+    const prenom = (row.prenom || row.Prenom || "").trim();
+    const phone = row.phone || row["numero de tele"] || row.Phone || row["Téléphone"];
+    const emailCandidate = row.email || row.Email || row.EMAIL;
+    const normalizedEmail = normalizeEmail(emailCandidate);
 
-    if (!nom || !prenom) continue;
+    if (!nom || !prenom) {
+      continue;
+    }
 
-    await addDoc(collection(db, "invites"), {
+    if (!normalizedEmail) {
+      return NextResponse.json(
+        { error: `Adresse email manquante ou invalide pour ${nom} ${prenom} (ligne ${index + 2})` },
+        { status: 400 },
+      );
+    }
+
+    const docRef = await addDoc(collection(db, "invites"), {
       nom,
       prenom,
       phone: phone || null,
-      email: email || null,
+      email: normalizedEmail,
       eventId,
       eventName: eventData.name || null,
       eventDate: eventData.date || null,
@@ -55,6 +68,24 @@ export async function POST(req: Request) {
       createdBy: auth.user.localId,
       createdByEmail: auth.user.email ?? null,
     });
+
+    try {
+      await sendInviteEmail({
+        to: normalizedEmail,
+        inviteId: docRef.id,
+        guestName: `${prenom} ${nom}`.trim(),
+        eventName: eventData.name,
+        eventDate: eventData.date,
+        eventPlace: eventData.place,
+      });
+    } catch (error) {
+      console.error("sendInviteEmail-import", error);
+      await deleteDoc(docRef);
+      return NextResponse.json(
+        { error: `Envoi email impossible pour ${nom} ${prenom}. Import interrompu.` },
+        { status: 502 },
+      );
+    }
 
     imported++;
   }

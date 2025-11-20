@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
-import { collection, addDoc, getDocs, doc, getDoc, query, where } from "firebase/firestore";
+import { collection, addDoc, getDocs, doc, getDoc, query, where, deleteDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { verifyRequestAuth } from "@/lib/serverAuth";
+import { normalizeEmail } from "@/lib/email";
+import { sendInviteEmail } from "@/lib/mailer";
 
 // GET ALL INVITES
 export async function GET(req: Request) {
@@ -31,6 +33,11 @@ export async function POST(req: Request) {
     );
   }
 
+  const normalizedEmail = normalizeEmail(email);
+  if (!normalizedEmail) {
+    return NextResponse.json({ error: "Une adresse email valide est requise" }, { status: 400 });
+  }
+
   if (!eventId) {
     return NextResponse.json(
       { error: "Un évènement est requis" },
@@ -50,11 +57,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Évènement non autorisé" }, { status: 403 });
   }
 
-  const docRef = await addDoc(collection(db, "invites"), {
+  const invitePayload = {
     nom,
     prenom,
     phone: phone || null,
-    email: email || null,
+    email: normalizedEmail,
     eventId,
     eventName: eventData.name || null,
     eventDate: eventData.date || null,
@@ -65,14 +72,33 @@ export async function POST(req: Request) {
     createdAt: Date.now(),
     createdBy: auth.user.localId,
     createdByEmail: auth.user.email ?? null,
-  });
+  };
+  const docRef = await addDoc(collection(db, "invites"), invitePayload);
+
+  try {
+    await sendInviteEmail({
+      to: normalizedEmail,
+      inviteId: docRef.id,
+      guestName: `${prenom} ${nom}`.trim(),
+      eventName: eventData.name,
+      eventDate: eventData.date,
+      eventPlace: eventData.place,
+    });
+  } catch (error) {
+    console.error("sendInviteEmail", error);
+    await deleteDoc(docRef);
+    return NextResponse.json(
+      { error: "Invitation enregistrée mais l'envoi de l'email a échoué. Réessayez." },
+      { status: 502 },
+    );
+  }
 
   return NextResponse.json({
     id: docRef.id,
     nom,
     prenom,
     phone: phone || null,
-    email: email || null,
+    email: normalizedEmail,
     eventId,
   });
 }

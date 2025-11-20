@@ -166,6 +166,7 @@ export default function CampaignLanding() {
                   value={formData.email}
                   onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
                   placeholder="vous@email.com"
+                  required
                 />
               </div>
               <div>
