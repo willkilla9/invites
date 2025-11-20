@@ -1,34 +1,77 @@
-const envValues = {
-  NEXT_PUBLIC_FIREBASE_API_KEY:
-    process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? process.env.FIREBASE_API_KEY,
-  NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN:
-    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? process.env.FIREBASE_AUTH_DOMAIN,
-  NEXT_PUBLIC_FIREBASE_PROJECT_ID:
-    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? process.env.FIREBASE_PROJECT_ID,
-  NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET:
-    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? process.env.FIREBASE_STORAGE_BUCKET,
-  NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID:
-    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ??
-    process.env.FIREBASE_MESSAGING_SENDER_ID,
-  NEXT_PUBLIC_FIREBASE_APP_ID:
-    process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? process.env.FIREBASE_APP_ID,
-} as const;
-
-const requireEnvValue = (primaryName: keyof typeof envValues): string => {
-  const value = envValues[primaryName];
+const requireApiKey = (): string => {
+  const value =
+    process.env.NEXT_PUBLIC_FIREBASE_API_KEY ?? process.env.FIREBASE_API_KEY;
   if (!value) {
-    throw new Error(`Missing Firebase configuration value for ${primaryName}.`);
+    throw new Error("Missing Firebase configuration value for NEXT_PUBLIC_FIREBASE_API_KEY.");
   }
   return value;
 };
 
-export const firebaseConfig = {
-  apiKey: requireEnvValue("NEXT_PUBLIC_FIREBASE_API_KEY"),
-  authDomain: requireEnvValue("NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN"),
-  projectId: requireEnvValue("NEXT_PUBLIC_FIREBASE_PROJECT_ID"),
-  storageBucket: requireEnvValue("NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET"),
-  messagingSenderId: requireEnvValue("NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID"),
-  appId: requireEnvValue("NEXT_PUBLIC_FIREBASE_APP_ID"),
+const requireAuthDomain = (): string => {
+  const value =
+    process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN ?? process.env.FIREBASE_AUTH_DOMAIN;
+  if (!value) {
+    throw new Error(
+      "Missing Firebase configuration value for NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN."
+    );
+  }
+  return value;
 };
 
-export const firebaseApiKey = firebaseConfig.apiKey;
+const requireProjectId = (): string => {
+  const value =
+    process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? process.env.FIREBASE_PROJECT_ID;
+  if (!value) {
+    throw new Error("Missing Firebase configuration value for NEXT_PUBLIC_FIREBASE_PROJECT_ID.");
+  }
+  return value;
+};
+
+const requireStorageBucket = (): string => {
+  const value =
+    process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET ?? process.env.FIREBASE_STORAGE_BUCKET;
+  if (!value) {
+    throw new Error(
+      "Missing Firebase configuration value for NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET."
+    );
+  }
+  return value;
+};
+
+const requireMessagingSenderId = (): string => {
+  const value =
+    process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID ??
+    process.env.FIREBASE_MESSAGING_SENDER_ID;
+  if (!value) {
+    throw new Error(
+      "Missing Firebase configuration value for NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID."
+    );
+  }
+  return value;
+};
+
+const requireAppId = (): string => {
+  const value = process.env.NEXT_PUBLIC_FIREBASE_APP_ID ?? process.env.FIREBASE_APP_ID;
+  if (!value) {
+    throw new Error("Missing Firebase configuration value for NEXT_PUBLIC_FIREBASE_APP_ID.");
+  }
+  return value;
+};
+
+const apiKey = requireApiKey();
+const authDomain = requireAuthDomain();
+const projectId = requireProjectId();
+const storageBucket = requireStorageBucket();
+const messagingSenderId = requireMessagingSenderId();
+const appId = requireAppId();
+
+export const firebaseConfig = {
+  apiKey,
+  authDomain,
+  projectId,
+  storageBucket,
+  messagingSenderId,
+  appId,
+};
+
+export const firebaseApiKey = apiKey;
