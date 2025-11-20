@@ -3,6 +3,13 @@ import { addDoc, collection, getDocs, query, where } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { verifyRequestAuth } from "@/lib/serverAuth";
 
+type EventDoc = {
+  createdAt?: number;
+  [key: string]: unknown;
+};
+
+const getCreatedAt = (value: unknown) => (typeof value === "number" ? value : 0);
+
 export async function GET(req: Request) {
   const auth = await verifyRequestAuth(req);
   if (!auth.ok) return auth.response;
@@ -13,13 +20,12 @@ export async function GET(req: Request) {
   );
   const snapshot = await getDocs(eventsQuery);
   const events = snapshot.docs
-    .map((doc) => ({ id: doc.id, ...doc.data() }))
+    .map((doc) => {
+      const data = doc.data() as EventDoc;
+      return { id: doc.id, ...data };
+    })
     // Firestore equality queries don't guarantee order, so we sort locally
-    .sort((a, b) => {
-      const aCreatedAt = typeof a.createdAt === "number" ? a.createdAt : 0;
-      const bCreatedAt = typeof b.createdAt === "number" ? b.createdAt : 0;
-      return bCreatedAt - aCreatedAt;
-    });
+    .sort((a, b) => getCreatedAt(b.createdAt) - getCreatedAt(a.createdAt));
   return NextResponse.json(events);
 }
 
