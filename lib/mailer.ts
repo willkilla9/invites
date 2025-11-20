@@ -40,8 +40,14 @@ const buildInviteUrl = (inviteId: string) => {
   return `${normalizedBase}/invite/${inviteId}`;
 };
 
+const buildInvitePdfUrl = (inviteId: string) => {
+  const normalizedBase = baseUrl.replace(/\/$/, "");
+  return `${normalizedBase}/api/public/invites/${inviteId}/pdf`;
+};
+
 const buildMessage = (payload: InviteEmailPayload) => {
   const inviteUrl = buildInviteUrl(payload.inviteId);
+  const pdfUrl = buildInvitePdfUrl(payload.inviteId);
   const guest = payload.guestName || "Invité";
   const eventName = payload.eventName || "votre évènement";
   const eventDate = payload.eventDate || "Date communiquée prochainement";
@@ -53,6 +59,7 @@ const buildMessage = (payload: InviteEmailPayload) => {
     `<p>Date : ${eventDate}<br/>Lieu : ${eventPlace}</p>`,
     `<p>Consultez et sauvegardez votre badge via le lien suivant :</p>`,
     `<p><a href="${inviteUrl}" style="color:#6366f1;font-weight:600">Accéder à mon invitation</a></p>`,
+    `<p>Besoin du PDF ? <a href="${pdfUrl}" style="color:#22d3ee;font-weight:600">Télécharger le badge</a></p>`,
     `<p>Merci et à très vite.</p>`,
   ].join("");
 
@@ -62,6 +69,7 @@ const buildMessage = (payload: InviteEmailPayload) => {
     `Date : ${eventDate}`,
     `Lieu : ${eventPlace}`,
     `Consultez-la via ${inviteUrl}`,
+    `PDF direct : ${pdfUrl}`,
     `Merci.`,
   ].join("\n");
 

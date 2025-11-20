@@ -102,7 +102,7 @@ export default function InvitePage() {
           <p className="text-sm text-slate-400">{invite.eventPlace || "Lieu communiqué ultérieurement"}</p>
         </header>
 
-        <section className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl">
+        <section className="rounded-3xl border border-white/10 bg-slate-900/70 p-6 shadow-xl space-y-4">
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div>
               <p className="text-xs uppercase tracking-[0.3em] text-slate-400">Invité</p>
@@ -125,7 +125,15 @@ export default function InvitePage() {
             </span>
           </div>
 
-          <div className="mt-6 space-y-4 text-sm text-slate-300">
+          <div className="space-y-4 text-sm text-slate-300">
+            <a
+              href={`/api/public/invites/${inviteId}/pdf`}
+              className="inline-flex items-center justify-center rounded-2xl border border-white/10 bg-white/10 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/20"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Télécharger le badge PDF
+            </a>
             <div className="rounded-2xl border border-white/10 bg-black/30 px-4 py-3">
               <p className="text-xs uppercase tracking-[0.3em] text-slate-500">Conseils</p>
               <ul className="mt-2 list-disc space-y-1 pl-5">
